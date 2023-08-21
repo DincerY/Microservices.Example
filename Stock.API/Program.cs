@@ -1,4 +1,5 @@
 using MassTransit;
+using MongoDB.Driver;
 using Shared;
 using Stock.API.Consumers;
 using Stock.API.Services;
@@ -27,6 +28,23 @@ builder.Services.AddMassTransit(configurator =>
 });
 
 builder.Services.AddSingleton<MongoDbService>();
+
+
+#region MongoDb ye seed data ekleme
+
+using IServiceScope scope = builder.Services.BuildServiceProvider().CreateScope();
+MongoDbService mongoDbService = scope.ServiceProvider.GetService<MongoDbService>();
+var collection = mongoDbService.GetCollection<Stock.API.Models.Entities.Stock>();
+if (collection.FindSync(s=>true).Any())
+{
+    await collection.InsertOneAsync(new(){ProductId = Guid.NewGuid(),Count = 2000});
+    await collection.InsertOneAsync(new(){ProductId = Guid.NewGuid(),Count = 1000});
+    await collection.InsertOneAsync(new(){ProductId = Guid.NewGuid(),Count = 3000});
+    await collection.InsertOneAsync(new(){ProductId = Guid.NewGuid(),Count = 5000});
+    await collection.InsertOneAsync(new(){ProductId = Guid.NewGuid(),Count = 500});
+}
+
+#endregion
 
 var app = builder.Build();
 

@@ -4,14 +4,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Shared.Events.Common;
-using Shared.Message;
 
 namespace Shared.Events;
 
-public class OrderCreatedEvent : IEvent
+public class StockReservedEvent : IEvent
 {
-    public Guid OrderId { get; set; }
     public Guid BuyerId { get; set; }
-    public List<OrderItemMessage> OrderItems { get; set; }
+    public Guid OrderId { get; set; }
     public decimal TotalPrice { get; set; }
+
 }
