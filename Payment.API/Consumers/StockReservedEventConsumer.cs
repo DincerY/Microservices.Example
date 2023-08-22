@@ -11,7 +11,7 @@ public class StockReservedEventConsumer : IConsumer<StockReservedEvent>
         _publishEndpoint = publishEndpoint;
     }
 
-    public Task Consume(ConsumeContext<StockReservedEvent> context)
+    public async Task Consume(ConsumeContext<StockReservedEvent> context)
     {
         if (true)
         {
@@ -20,9 +20,21 @@ public class StockReservedEventConsumer : IConsumer<StockReservedEvent>
                 OrderId = context.Message.OrderId,
             };
             _publishEndpoint.Publish(paymentCompletedEvent);
+            Console.WriteLine("Ödeme Başarılı");
+        }
+        else
+        {
+            PaymentFailedEvent paymentFailedEvent = new()
+            {
+                OrderId = context.Message.OrderId,
+                Messsage = "Bakiye yetersiz",
+                OrderItems = context.Message.OrderItems,
+
+            };
+            _publishEndpoint.Publish(paymentFailedEvent);
+            Console.WriteLine("Ödeme Başarısız");
         }
 
-        return Task.CompletedTask;
     }
 
 }

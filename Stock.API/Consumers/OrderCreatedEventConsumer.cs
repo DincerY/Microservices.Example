@@ -11,10 +11,12 @@ public class OrderCreatedEventConsumer : IConsumer<OrderCreatedEvent>
 {
     IMongoCollection<Models.Entities.Stock> _stockCollection;
     private readonly ISendEndpointProvider _sendEndpointProvider;
+    private readonly IPublishEndpoint _publishEndpoint;
 
-    public OrderCreatedEventConsumer(MongoDbService mongoDbService, ISendEndpointProvider sendEndpointProvider)
+    public OrderCreatedEventConsumer(MongoDbService mongoDbService, ISendEndpointProvider sendEndpointProvider, IPublishEndpoint publishEndpoint)
     {
         _sendEndpointProvider = sendEndpointProvider;
+        _publishEndpoint = publishEndpoint;
         _stockCollection = mongoDbService.GetCollection<Models.Entities.Stock>();
     }
 
@@ -43,6 +45,7 @@ public class OrderCreatedEventConsumer : IConsumer<OrderCreatedEvent>
                 BuyerId = context.Message.BuyerId,
                 OrderId = context.Message.OrderId,
                 TotalPrice = context.Message.TotalPrice,
+                OrderItems = context.Message.OrderItems,
             };
 
             ISendEndpoint sendEndpoint = await _sendEndpointProvider.GetSendEndpoint(new Uri($"queue:{RabbitMQSettings.Payment_StockReservedEventQueue}"));
@@ -50,7 +53,15 @@ public class OrderCreatedEventConsumer : IConsumer<OrderCreatedEvent>
         }
         else
         {
-            
+            StockNotReservedEvent stockNotReservedEvent = new()
+            {
+                BuyerId = context.Message.BuyerId,
+                OrderId = context.Message.OrderId,
+                Message = "..."
+            };
+            await _publishEndpoint.Publish(stockNotReservedEvent);
+
+
         }
     }
 }
